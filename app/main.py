@@ -1,3 +1,4 @@
+from datetime import datetime
 from fastapi import FastAPI, HTTPException, Depends, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer
@@ -66,6 +67,16 @@ async def register(user: UserCreate, db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(User).where(User.email == user.email))
     if result.scalar_one_or_none():
         raise HTTPException(status_code=409, detail="Email already registered")
+    
+    # Block disposable email domains
+    blocked_domains = [
+        "mailinator.com", "tempmail.com", "guerrillamail.com",
+        "10minutemail.com", "throwaway.email", "fakeinbox.com",
+        "yopmail.com", "trashmail.com", "maildrop.cc"
+    ]
+    email_domain = user.email.split("@")[1].lower()
+    if email_domain in blocked_domains:
+        raise HTTPException(status_code=400, detail="Please use a real email address")
 
     new_user = User(
         name=user.name,
@@ -110,6 +121,7 @@ async def create_expense(
         amount=expense.amount,
         category=expense.category,
         notes=expense.notes,
+        date=expense.date or datetime.utcnow(),
         user_id=current_user.id
     )
     db.add(new_expense)

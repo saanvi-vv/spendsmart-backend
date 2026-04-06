@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, Field, ConfigDict, EmailStr
 from typing import Optional
 from datetime import datetime
 
@@ -7,7 +7,7 @@ from datetime import datetime
 
 class UserCreate(BaseModel):
     name: str = Field(..., min_length=2, max_length=50)
-    email: str
+    email: EmailStr
     password: str = Field(..., min_length=8)
 
 
@@ -37,6 +37,7 @@ class ExpenseCreate(BaseModel):
     amount: float = Field(..., gt=0)  # gt=0 means must be greater than 0
     category: str = Field(..., min_length=1, max_length=50)
     notes: Optional[str] = None
+    date: Optional[datetime] = None
 
 
 class ExpenseResponse(BaseModel):
@@ -56,6 +57,7 @@ class ExpenseUpdate(BaseModel):
     amount: float = Field(..., gt=0)
     category: str = Field(..., min_length=1, max_length=50)
     notes: Optional[str] = None
+    date: Optional[datetime] = None
 
 
 # ---------- Summary Schema ----------
