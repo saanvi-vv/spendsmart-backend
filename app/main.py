@@ -116,19 +116,25 @@ async def create_expense(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
+    # Strip timezone info if present
+    expense_date = expense.date
+    if expense_date:
+        expense_date = expense_date.replace(tzinfo=None)
+    else:
+        expense_date = datetime.utcnow()
+
     new_expense = Expense(
         title=expense.title,
         amount=expense.amount,
         category=expense.category,
         notes=expense.notes,
-        date=expense.date or datetime.utcnow(),
+        date=expense_date,
         user_id=current_user.id
     )
     db.add(new_expense)
     await db.commit()
     await db.refresh(new_expense)
     return new_expense
-
 
 @app.get("/expenses", response_model=list[ExpenseResponse])
 async def get_expenses(
